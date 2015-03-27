@@ -10,14 +10,19 @@ void cd(char *new_dir);
 int main(){
 
   
- 
-  pwd();
-  cd("/usr/bin");
-  pwd();
- 
   char *line;
+
+
+  pwd();
   line = readline("enter a command: ");
   
+ 
+  
+  pwd();
+ 
+ 
+  
+ 
  
   free(line);
   return 0;
