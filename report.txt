@@ -1,0 +1,7 @@
+Firstly, this is not complete. I still have a couple of the requirements to fill..
+
+What my code does is it basically runs a while loop constantly that gives you the prompt and then it reads user input and does its thing with it. The while loop is broken by typing exit, this exits my snail shell.
+
+I have a function to change directory. It saves the last directory so the cd - command can be used. It also accepts relative and absolute paths.
+
+I also have the background function working. It checks the input for the final entry to be an & and then either puts that process in the foreground or background.
