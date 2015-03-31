@@ -22,9 +22,9 @@ int main(int argc, char **argv, char **envp){
   int exit_flag;
 
   pid=getpid();//parent id
-  exit_flag=0;
-  printf("%d\n", pid);
+  exit_flag=0;//set an exit flag
 
+  //Open the shell with a pretty picture
   printf("\n\n\tWelcome to my snail shell!!\n\n");
   printf("\t@             _________\n");
   printf("\t \\____       /         \\ \n");
@@ -40,41 +40,57 @@ int main(int argc, char **argv, char **envp){
   printf("To exit my snail shell type exit\n\n");
 
   while(exit_flag==0){
+    //get and print the current working directory
     if(getcwd(cwd, sizeof(cwd))!=NULL)
-      printf("current working directory: %s\n", cwd);
+      printf("[%s] ", cwd);
     else
       printf("ah shit\n");
+
     num_args=0;
-    line = readline("snail: ");
+    line = readline("snail: ");//prompt
     
     parse(line);
    
-
+    //check for cd command
     if(my_args[0]!=NULL && strcmp(my_args[0],"cd")==0){
       cd(cwd);
-      }
+    }
     else if(num_args>0){
+
       pid_t child_pid=fork();
-      //pid_t child_ppid=getppid();//child's parent id
-      if(child_pid==0){
-	if(execvp(my_args[0], my_args)<0 && strcmp(my_args[0], "exit")!=0){
-	  printf("%s: not found\n", my_args[0]);
-	  exit(1);
+      
+      if(child_pid==0){//ensure you're working on forked process
+	if(strcmp(my_args[num_args-1],"&")==0){//determine whether process is bg proces 
+	  my_args[num_args-1]=NULL;
+	  num_args=num_args-1;
+	  //execute the command if it's not exit
+	  if(execvp(my_args[0], my_args)<0 && strcmp(my_args[0], "exit")!=0){
+	    printf("%s: not found\n", my_args[0]);//error message
+	    exit(1);
+	  }
+	}
+	//for foreground process
+	else{
+	  //ensure that we're not being asked to exit the snail shell
+	  if(strcmp(my_args[0], "exit")!=0){
+	    //ececute the command
+	    execvp(my_args[0], my_args);
+	    //error message
+	    if(execvp(my_args[0], my_args)<0)
+	      printf("%s: not found\n", my_args[0]);
+	    exit(1);
+	  }
 	}
       }
-      wait(NULL);
+      //only wait on foreground processes
+      if(strcmp(my_args[num_args-1],"&")!=0)//check for & again
+	wait(NULL);
     }
-    
-
-
+      
     //to exit the snail shell type exit
     if(my_args[0]!=NULL && strcmp(my_args[0], "exit")==0)
       exit_flag=1;
   }
- 
- 
-  
- 
  
   free(line);
   return 0;
@@ -89,8 +105,6 @@ void parse(char *line){
   num_args=0;
   temp=NULL;
 
-  //if(line==NULL) return;
-
   for(i=0;i<16;i++)
     my_args[i]=NULL;
 
@@ -103,16 +117,13 @@ void parse(char *line){
     i++;
     temp=strtok(NULL, " ");
   }
-  //printf("%s\n", my_args[0]);
 }
 
 
 
 void cd(char cwd[1024]){
   
-  static char prev_dir[1024];
-
-  
+  static char prev_dir[1024];//need to hold this for multiple calls
 
   //procedure if '-' is give with cd
   if(my_args[1]!=NULL && strcmp("-", my_args[1]) == 0){
